@@ -55,6 +55,7 @@ class _MyAppState extends State<MyApp> {
   final _ipController = TextEditingController(text: "172.16.100.6");
   final _portController = TextEditingController(text: "9096");
   String _vpnRes;
+  String _vpnId;
 
   @override
   Widget build(BuildContext context) {
@@ -170,6 +171,32 @@ class _MyAppState extends State<MyApp> {
                 print(nettest);
               },
               child: Text('nettest'),
+            ),
+          ),
+        if (_vpnRes != null)
+          ListTile(
+            title: ElevatedButton(
+              onPressed: () async {
+                _vpnId = "";
+                setState(() {});
+                final cancel = ToastUtil.loading(context, "获取VPNID");
+                await Future.delayed(Duration(seconds: 1));
+                _vpnId = await ZkVpn.title;
+                cancel.call();
+                setState(() {});
+              },
+              child: Text('获取VPNID'),
+            ),
+          ),
+        if (_vpnId != null)
+          ListTile(
+            title: Text(
+              "_vpnId结果：$_vpnId",
+              style: TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
           ),
       ]),
