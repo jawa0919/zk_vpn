@@ -1,36 +1,80 @@
 package top.wiz.zk_vpn
 
-import androidx.annotation.NonNull
-
+import android.app.Activity
+import android.app.Application
+import android.util.Log
 import io.flutter.embedding.engine.plugins.FlutterPlugin
-import io.flutter.plugin.common.MethodCall
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry.Registrar
+import io.flutter.plugin.common.PluginRegistry
 
-/** ZkVpnPlugin */
-class ZkVpnPlugin: FlutterPlugin, MethodCallHandler {
-  /// The MethodChannel that will the communication between Flutter and native Android
-  ///
-  /// This local reference serves to register the plugin with the Flutter Engine and unregister it
-  /// when the Flutter Engine is detached from the Activity
-  private lateinit var channel : MethodChannel
+class ZkVpnPlugin : FlutterPlugin, ActivityAware {
 
-  override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    channel = MethodChannel(flutterPluginBinding.binaryMessenger, "zk_vpn")
-    channel.setMethodCallHandler(this)
-  }
+    private var methodChannel: MethodChannel? = null
+    private var pluginBinding: FlutterPlugin.FlutterPluginBinding? = null
+    private var application: Application? = null
+    private var activity: Activity? = null
 
-  override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-    if (call.method == "getPlatformVersion") {
-      result.success("Android ${android.os.Build.VERSION.RELEASE}")
-    } else {
-      result.notImplemented()
+    companion object {
+        private const val TAG = "ZkVpnPlugin"
+
+        @Deprecated("only use flutter v1")
+        fun registerWith(registrar: PluginRegistry.Registrar) {
+            if (registrar.activity() == null) return
+            val plugin = ZkVpnPlugin()
+            val application = registrar.activeContext().applicationContext as Application
+            plugin.setup(registrar.messenger(), application, registrar.activity())
+        }
     }
-  }
 
-  override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-    channel.setMethodCallHandler(null)
-  }
+    override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        Log.i(TAG, "onAttachedToEngine: ")
+        this.pluginBinding = binding
+    }
+
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        Log.i(TAG, "onDetachedFromEngine: ")
+        this.pluginBinding = null
+    }
+
+    override fun onDetachedFromActivity() {
+        Log.i(TAG, "onDetachedFromActivity: ")
+        teardown()
+    }
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        Log.i(TAG, "onReattachedToActivityForConfigChanges: ")
+        onAttachedToActivity(binding)
+    }
+
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        Log.i(TAG, "onAttachedToActivity: ")
+        pluginBinding?.let {
+            setup(it.binaryMessenger, it.applicationContext as Application, binding.activity)
+        }
+    }
+
+    override fun onDetachedFromActivityForConfigChanges() {
+        Log.i(TAG, "onDetachedFromActivityForConfigChanges: ")
+        onDetachedFromActivity()
+    }
+
+    private fun setup(messenger: BinaryMessenger, application: Application, activity: Activity) {
+        methodChannel = MethodChannel(messenger, "zk_vpn")
+
+        this.application = application
+        this.activity = activity
+
+        val handler = ZkVpnMethodCallHandler(activity)
+        methodChannel?.setMethodCallHandler(handler)
+    }
+
+    private fun teardown() {
+        methodChannel?.setMethodCallHandler(null)
+        application = null
+        activity = null
+        methodChannel = null
+    }
 }
