@@ -2,6 +2,8 @@ package top.wiz.zk_vpn
 
 import android.app.Activity
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import net.ttxc.L4Proxy.L4ProxyArd
@@ -13,6 +15,7 @@ class ZkVpnMethodCallHandler(private val activity: Activity) : MethodChannel.Met
         private const val TAG = "ZkVpnMethodCallHandler"
     }
 
+    private val mainHandler = Handler(Looper.getMainLooper())
     private var l4ProxyArd: L4ProxyArd? = null
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -22,9 +25,10 @@ class ZkVpnMethodCallHandler(private val activity: Activity) : MethodChannel.Met
             }
             "checkCertificate" -> {
                 val rootPath = Environment.getExternalStorageDirectory().path
-                val platformDir = File("$rootPath/platform");
-                val ipConfigFile = File("$rootPath/platform/ipConfig.txt");
-                result.success(platformDir.exists() && platformDir.isDirectory && ipConfigFile.exists())
+                val platformDir = File("$rootPath/platform")
+                val ipConfigFile = File("$rootPath/platform/ipConfig.txt")
+                val res = platformDir.exists() && platformDir.isDirectory && ipConfigFile.exists()
+                result.success(res)
             }
             "getCertCN" -> {
                 val rootPath = Environment.getExternalStorageDirectory().path
@@ -32,14 +36,14 @@ class ZkVpnMethodCallHandler(private val activity: Activity) : MethodChannel.Met
                 Thread {
                     val api = l4ProxyArd ?: L4ProxyArd.getInstance()
                     val res = api.getCertCN(platformDir.path)
-                    result.success(res)
+                    mainHandler.post(Runnable { result.success(res) })
                 }.start()
             }
             "getTitle" -> {
                 Thread {
                     val api = l4ProxyArd ?: L4ProxyArd.getInstance()
                     val res = api.title
-                    result.success(res)
+                    mainHandler.post(Runnable { result.success(res) })
                 }.start()
             }
             "getSSoInfo" -> {
@@ -48,14 +52,14 @@ class ZkVpnMethodCallHandler(private val activity: Activity) : MethodChannel.Met
                 Thread {
                     val api = l4ProxyArd ?: L4ProxyArd.getInstance()
                     val res = api.getSSoInfo(appId, type)
-                    result.success(res)
+                    mainHandler.post(Runnable { result.success(res) })
                 }.start()
             }
             "connectVPN" -> {
                 Thread {
                     val api = l4ProxyArd ?: L4ProxyArd.getInstance()
                     val res = api.L4ProxyConnectVPN()
-                    result.success(res)
+                    mainHandler.post(Runnable { result.success(res) })
                 }.start()
             }
             "serviceRun" -> {
@@ -63,15 +67,15 @@ class ZkVpnMethodCallHandler(private val activity: Activity) : MethodChannel.Met
                 Thread {
                     val api = l4ProxyArd ?: L4ProxyArd.getInstance()
                     val res = api.L4ProxyServiceRun("$url")
-                    result.success(res)
+                    mainHandler.post(Runnable { result.success(res) })
                 }.start()
             }
             "connectServer" -> {
                 val url = call.argument<String>("url")
                 Thread {
                     val api = l4ProxyArd ?: L4ProxyArd.getInstance()
-                    val res = api.L4ProxyConnectServer("$url")
-                    result.success(res)
+                    val res: String = api.L4ProxyConnectServer("$url")
+                    mainHandler.post(Runnable { result.success(res) })
                 }.start()
             }
             else -> {
