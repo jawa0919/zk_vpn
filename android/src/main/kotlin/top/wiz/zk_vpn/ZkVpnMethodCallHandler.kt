@@ -16,7 +16,7 @@ class ZkVpnMethodCallHandler(private val activity: Activity) : MethodChannel.Met
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
-    private var l4ProxyArd: L4ProxyArd? = null
+    private var api: L4ProxyArd? = null
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
@@ -34,15 +34,15 @@ class ZkVpnMethodCallHandler(private val activity: Activity) : MethodChannel.Met
                 val rootPath = Environment.getExternalStorageDirectory().path
                 val platformDir = File("$rootPath/platform")
                 Thread {
-                    val api = l4ProxyArd ?: L4ProxyArd.getInstance()
-                    val res = api.getCertCN(platformDir.path)
+                    api = api ?: L4ProxyArd.getInstance()
+                    val res = api?.getCertCN(platformDir.path)
                     mainHandler.post(Runnable { result.success(res) })
                 }.start()
             }
             "getTitle" -> {
                 Thread {
-                    val api = l4ProxyArd ?: L4ProxyArd.getInstance()
-                    val res = api.title
+                    api = api ?: L4ProxyArd.getInstance()
+                    val res = api?.title
                     mainHandler.post(Runnable { result.success(res) })
                 }.start()
             }
@@ -50,31 +50,31 @@ class ZkVpnMethodCallHandler(private val activity: Activity) : MethodChannel.Met
                 val appId = call.argument<String>("appId")
                 val type = call.argument<String>("type")
                 Thread {
-                    val api = l4ProxyArd ?: L4ProxyArd.getInstance()
-                    val res = api.getSSoInfo(appId, type)
+                    api = api ?: L4ProxyArd.getInstance()
+                    val res = api?.getSSoInfo(appId, type)
                     mainHandler.post(Runnable { result.success(res) })
                 }.start()
             }
             "connectVPN" -> {
                 Thread {
-                    val api = l4ProxyArd ?: L4ProxyArd.getInstance()
-                    val res = api.L4ProxyConnectVPN()
+                    api = api ?: L4ProxyArd.getInstance()
+                    val res = api?.L4ProxyConnectVPN()
                     mainHandler.post(Runnable { result.success(res) })
                 }.start()
             }
             "serviceRun" -> {
                 val url = call.argument<String>("url")
                 Thread {
-                    val api = l4ProxyArd ?: L4ProxyArd.getInstance()
-                    val res = api.L4ProxyServiceRun("$url")
+                    api = api ?: L4ProxyArd.getInstance()
+                    val res = api?.L4ProxyServiceRun("$url")
                     mainHandler.post(Runnable { result.success(res) })
                 }.start()
             }
             "connectServer" -> {
                 val url = call.argument<String>("url")
                 Thread {
-                    val api = l4ProxyArd ?: L4ProxyArd.getInstance()
-                    val res: String = api.L4ProxyConnectServer("$url")
+                    api = api ?: L4ProxyArd.getInstance()
+                    val res = api?.L4ProxyConnectServer("$url")
                     mainHandler.post(Runnable { result.success(res) })
                 }.start()
             }
