@@ -54,8 +54,8 @@ class _MyAppState extends State<MyApp> {
   bool _vpnConnect = false;
   final _ipController = TextEditingController(text: "172.16.100.6");
   final _portController = TextEditingController(text: "9096");
-  String _vpnRes;
-  String _vpnId;
+  String _vpnRes = "";
+  String _vpnId = "";
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +150,7 @@ class _MyAppState extends State<MyApp> {
             child: Text('获取VPN转发策略'),
           ),
         ),
-        if (_vpnRes != null)
+        if (_vpnRes.isNotEmpty)
           ListTile(
             title: Text(
               "VPN转发策略结果：$_vpnRes",
@@ -161,7 +161,7 @@ class _MyAppState extends State<MyApp> {
               ),
             ),
           ),
-        if (_vpnRes != null)
+        if (_vpnRes.isNotEmpty)
           ListTile(
             title: ElevatedButton(
               onPressed: () async {
@@ -173,7 +173,7 @@ class _MyAppState extends State<MyApp> {
               child: Text('nettest'),
             ),
           ),
-        if (_vpnRes != null)
+        if (_vpnRes.isNotEmpty)
           ListTile(
             title: ElevatedButton(
               onPressed: () async {
@@ -188,7 +188,7 @@ class _MyAppState extends State<MyApp> {
               child: Text('获取VPNID'),
             ),
           ),
-        if (_vpnId != null)
+        if (_vpnId.isNotEmpty)
           ListTile(
             title: Text(
               "_vpnId结果：$_vpnId",
