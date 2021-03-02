@@ -56,6 +56,7 @@ class _MyAppState extends State<MyApp> {
   final _portController = TextEditingController(text: "9096");
   String _vpnRes = "";
   String _vpnId = "";
+  Dio dio;
 
   @override
   Widget build(BuildContext context) {
@@ -143,6 +144,7 @@ class _MyAppState extends State<MyApp> {
                 _vpnRes = '地址未注册';
               } else {
                 _vpnRes = await ZkVpn.connectServer("$ip:$port");
+                dio = Dio(BaseOptions(baseUrl: "http://$_vpnRes"));
               }
               cancel.call();
               setState(() {});
@@ -165,12 +167,22 @@ class _MyAppState extends State<MyApp> {
           ListTile(
             title: ElevatedButton(
               onPressed: () async {
-                final dio = Dio(BaseOptions(baseUrl: "http://$_vpnRes"));
                 final nettest = await dio.get("/nettest");
                 ToastUtil.show(nettest.toString());
                 print(nettest);
               },
               child: Text('nettest'),
+            ),
+          ),
+        if (_vpnRes.isNotEmpty)
+          ListTile(
+            title: ElevatedButton(
+              onPressed: () async {
+                final nettest = await dio.get("/getrsapublickey");
+                ToastUtil.show(nettest.toString());
+                print(nettest);
+              },
+              child: Text('getrsapublickey'),
             ),
           ),
         if (_vpnRes.isNotEmpty)
