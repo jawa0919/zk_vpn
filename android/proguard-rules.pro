@@ -1,0 +1,1 @@
+-keep class net.ttxc.L4Proxy.**  { *; }

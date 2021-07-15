@@ -31,9 +31,10 @@ android {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "top.wj.zk_vpn_example"
         minSdkVersion 16
-        targetSdkVersion 30
+        targetSdkVersion 29
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        ndk { abiFilters 'armeabi-v7a' }
     }
 
     buildTypes {
